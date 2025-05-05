@@ -1,0 +1,5 @@
+
+project_id = "cbcmvlhsdbjjixgqhwhs"
+
+[functions.face-match]
+verify_jwt = false
