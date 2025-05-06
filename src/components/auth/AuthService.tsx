@@ -16,7 +16,15 @@ export const signUp = async (email: string, password: string, fullName: string) 
 
     if (error) throw error;
     
-    toast.success("Account created successfully!");
+    // Sign in immediately after successful signup
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (signInError) throw signInError;
+    
+    toast.success("Account created and signed in successfully!");
     return data;
   } catch (error) {
     console.error("Error signing up:", error);
@@ -56,4 +64,13 @@ export const signOut = async () => {
     toast.error(error instanceof Error ? error.message : "Failed to sign out");
     return false;
   }
+};
+
+export const getCurrentSession = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    console.error("Error getting session:", error);
+    return null;
+  }
+  return data.session;
 };

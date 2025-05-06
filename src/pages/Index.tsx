@@ -1,10 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import MissingPersonCard from "@/components/MissingPersonCard";
-import { missingPersonsData } from "@/data/missingPersons";
-import { ArrowRight, Search, UserPlus, Share2, CheckCircle, Users, UserX, Heart } from "lucide-react";
+import { ArrowRight, Search, UserPlus, Share2, CheckCircle, Users, UserX, Heart, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,25 +10,107 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { 
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+
+interface MissingPerson {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  photo_url: string;
+  last_seen_date: string;
+  last_seen_location: string;
+  description: string;
+  status: string;
+  contact_info?: {
+    contact_name: string;
+    relationship: string;
+    phone: string;
+    email: string;
+  }[];
+}
 
 const Index = () => {
-  // Filter only active missing cases (not found) for the recent cases section
-  const activeMissingCases = missingPersonsData.filter(person => person.status === 'missing');
+  const [missingPersons, setMissingPersons] = useState<MissingPerson[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Filter only found cases for success stories
-  const foundCases = missingPersonsData.filter(person => person.status === 'found');
+  useEffect(() => {
+    const fetchMissingPersons = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('missing_persons')
+          .select(`
+            *,
+            contact_info (*)
+          `);
+        
+        if (error) throw error;
+        
+        setMissingPersons(data || []);
+      } catch (error) {
+        console.error('Error fetching missing persons:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMissingPersons();
+  }, []);
+
+  // Filter only active missing cases and found cases
+  const activeMissingCases = missingPersons.filter(person => person.status === 'missing');
+  const foundCases = missingPersons.filter(person => person.status === 'found');
   
   // Calculate statistics
-  const totalCases = missingPersonsData.length;
+  const totalCases = missingPersons.length;
   const foundCount = foundCases.length;
   const missingCount = activeMissingCases.length;
+  
+  // Adapt missing person data format for the MissingPersonCard component
+  const formatPersonForCard = (person: MissingPerson) => {
+    return {
+      id: person.id,
+      name: person.name,
+      age: person.age,
+      gender: person.gender,
+      imageUrl: person.photo_url,
+      lastSeen: {
+        date: person.last_seen_date,
+        location: person.last_seen_location
+      },
+      description: person.description,
+      status: person.status as 'missing' | 'found',
+      contactInfo: {
+        name: person.contact_info?.[0]?.contact_name || '',
+        relation: person.contact_info?.[0]?.relationship || '',
+        phone: person.contact_info?.[0]?.phone || '',
+        email: person.contact_info?.[0]?.email || ''
+      }
+    };
+  };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-finder-primary" />
+            <p className="mt-4 text-lg">Loading data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -134,7 +214,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-center mb-3">Register a Case</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-center">
-                    If someone you know is missing in known, please register a case with person details and photos to help others identify them.
+                  If someone you know is missing in known, please register a case with person details and photos to help others identify them.
                   </p>
                 </div>
               </div>
@@ -146,7 +226,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-xl font-semibold text-center mb-3">Share Cases</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-center">
-                    Help spread the word by sharing missing the missing person profiles on social media and public places with your community.
+                  Help spread the word by sharing missing the missing person profiles on social media and public places with your community.
                   </p>
                 </div>
               </div>
@@ -160,48 +240,54 @@ const Index = () => {
             <div className="flex justify-between items-center mb-10">
               <h2 className="text-3xl font-bold">Success Stories</h2>
               <Button variant="ghost" asChild>
-                <Link to="/success-stories" className="flex items-center">
+                <Link to="/search?status=found" className="flex items-center">
                   <span>View All</span>
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
             
-            <Carousel className="mb-10 max-w-4xl mx-auto">
-              <CarouselContent>
-                {foundCases.map((person) => (
-                  <CarouselItem key={person.id} className="md:basis-1/2 lg:basis-1/2">
-                    <Card className="overflow-hidden h-full">
-                      <div className="aspect-video relative overflow-hidden">
-                        <img 
-                          src={person.imageUrl} 
-                          alt={person.name} 
-                          className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center">
-                          <Heart className="w-3 h-3 mr-1" />
-                          <span>Found</span>
+            {foundCases.length > 0 ? (
+              <Carousel className="mb-10 max-w-4xl mx-auto">
+                <CarouselContent>
+                  {foundCases.map((person) => (
+                    <CarouselItem key={person.id} className="md:basis-1/2 lg:basis-1/2">
+                      <Card className="overflow-hidden h-full">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img 
+                            src={person.photo_url} 
+                            alt={person.name} 
+                            className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center">
+                            <Heart className="w-3 h-3 mr-1" />
+                            <span>Found</span>
+                          </div>
                         </div>
-                      </div>
-                      <CardHeader className="pb-2">
-                        <CardTitle>{person.name}</CardTitle>
-                        <CardDescription>Found after {Math.floor(Math.random() * 30) + 1} days</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                          {person.name} was found safe in {person.lastSeen.location} thanks to community efforts and 
-                          the dedication of local authorities.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="hidden md:block">
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                        <CardHeader className="pb-2">
+                          <CardTitle>{person.name}</CardTitle>
+                          <CardDescription>Found after {Math.floor(Math.random() * 30) + 1} days</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                            {person.name} was found safe in {person.last_seen_location} thanks to community efforts and 
+                            the dedication of local authorities.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="hidden md:block">
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </div>
+              </Carousel>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No success stories yet. Help us find missing people.</p>
               </div>
-            </Carousel>
+            )}
 
             <div className="text-center mb-8">
               <p className="text-gray-600 dark:text-gray-400 text-lg max-w-3xl mx-auto">
@@ -233,11 +319,17 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {activeMissingCases.slice(0, 4).map((person) => (
-                <MissingPersonCard key={person.id} person={person} compact />
-              ))}
-            </div>
+            {activeMissingCases.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {activeMissingCases.slice(0, 4).map((person) => (
+                  <MissingPersonCard key={person.id} person={formatPersonForCard(person)} compact />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No missing persons registered yet.</p>
+              </div>
+            )}
           </div>
         </section>
       </main>

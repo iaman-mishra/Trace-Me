@@ -23,8 +23,8 @@ export const AuthForm = ({ onAuthenticated }: AuthFormProps) => {
     setIsLoading(true);
     
     try {
-      const user = await signIn(email, password);
-      if (user) {
+      const session = await signIn(email, password);
+      if (session) {
         onAuthenticated();
       }
     } finally {

@@ -15,7 +15,9 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = 'https://cbcmvlhsdbjjixgqhwhs.supabase.co';
-    const supabaseKey = req.headers.get('Authorization')?.split(' ')[1] || '';
+    // Using ANON KEY directly instead of extracting from Authorization header
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiY212bGhzZGJqaml4Z3Fod2hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NjUyODUsImV4cCI6MjA2MjA0MTI4NX0.m-c3W2zhrZcrCbse6fx8NN2KzNcmdQTvTWPl2W65dHM";
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { imageBase64 } = await req.json();
@@ -26,18 +28,18 @@ serve(async (req) => {
       );
     }
 
-    // Decode base64 image for AI processing
-    const imageBuffer = Uint8Array.from(atob(imageBase64.split(',')[1]), c => c.charCodeAt(0));
-
     // Get all missing persons from the database
     const { data: missingPersons, error } = await supabase
       .from('missing_persons')
-      .select('id, name, age, gender, photo_url, last_seen_date, last_seen_location, status')
+      .select('id, name, age, gender, photo_url, last_seen_date, last_seen_location, status, description')
       .eq('status', 'missing');
 
     if (error) {
+      console.error('Error fetching missing persons:', error);
       throw error;
     }
+
+    console.log(`Found ${missingPersons?.length || 0} missing persons in database`);
 
     // In a real implementation, we would use ML models for face comparison
     // For this demo, we'll simulate finding matches with a random probability
@@ -46,7 +48,7 @@ serve(async (req) => {
     const matchCount = Math.floor(Math.random() * 3); // 0, 1, or 2 matches
     const matches = [];
     
-    if (matchCount > 0 && missingPersons.length > 0) {
+    if (matchCount > 0 && missingPersons && missingPersons.length > 0) {
       // Shuffle the array to get random matches
       const shuffled = [...missingPersons].sort(() => 0.5 - Math.random());
       
@@ -62,7 +64,7 @@ serve(async (req) => {
       matches.sort((a, b) => b.confidence - a.confidence);
     }
 
-    console.log(`Found ${matches.length} potential matches for the uploaded image`);
+    console.log(`Returning ${matches.length} potential matches for the uploaded image`);
 
     return new Response(
       JSON.stringify({ matches }),

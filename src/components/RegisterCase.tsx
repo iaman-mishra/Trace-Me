@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Button } from "@/components/ui/button";
@@ -16,10 +15,10 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthContext";
 
 const RegisterCase = () => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const { user, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const navigate = useNavigate();
@@ -44,19 +43,6 @@ const RegisterCase = () => {
   const [relationship, setRelationship] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-
-  useEffect(() => {
-    // Check if user is already authenticated
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        setAuthenticated(true);
-        setUser(data.user);
-      }
-    };
-    
-    checkUser();
-  }, []);
   
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -80,6 +66,12 @@ const RegisterCase = () => {
       const fileExt = photoFile.name.split('.').pop();
       const fileName = `${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
       
+      // Check if the bucket exists, create it if not
+      const { data: buckets } = await supabase.storage.listBuckets();
+      if (!buckets?.find(bucket => bucket.name === 'case_photos')) {
+        await supabase.storage.createBucket('case_photos', { public: true });
+      }
+      
       const { data, error } = await supabase.storage
         .from('case_photos')
         .upload(fileName, photoFile);
@@ -101,7 +93,7 @@ const RegisterCase = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!authenticated) {
+    if (!user) {
       toast.error("Please sign in or create an account to register a case");
       return;
     }
@@ -126,6 +118,8 @@ const RegisterCase = () => {
         throw new Error("Failed to upload photo");
       }
       
+      console.log("Uploading case with user ID:", user.id);
+      
       // Insert missing person case
       const { data: caseData, error: caseError } = await supabase
         .from('missing_persons')
@@ -146,7 +140,16 @@ const RegisterCase = () => {
         })
         .select();
       
-      if (caseError) throw caseError;
+      if (caseError) {
+        console.error("Error inserting case:", caseError);
+        throw caseError;
+      }
+      
+      console.log("Case inserted:", caseData);
+      
+      if (!caseData || caseData.length === 0) {
+        throw new Error("No case data returned after insertion");
+      }
       
       // Insert contact information
       const { error: contactError } = await supabase
@@ -184,22 +187,43 @@ const RegisterCase = () => {
       // Navigate to search page
       navigate("/search");
     } catch (error) {
-      toast.error("Failed to register case");
-      console.error(error);
+      console.error("Error registering case:", error);
+      toast.error("Failed to register case: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  if (!authenticated) {
+  // Make the tab navigation work properly
+  const navigateToTab = (tabValue: string) => {
+    const tabsElement = document.querySelector('[role="tablist"]');
+    if (tabsElement) {
+      const tabTrigger = tabsElement.querySelector(`[data-state][value="${tabValue}"]`);
+      if (tabTrigger && tabTrigger instanceof HTMLElement) {
+        tabTrigger.click();
+      }
+    }
+  };
+  
+  // Check if authenticated
+  if (!user && !loading) {
     return (
       <div className="max-w-md mx-auto">
         <Card>
           <CardContent className="pt-6">
             <h2 className="text-2xl font-semibold text-center mb-6">Sign In or Create an Account</h2>
-            <AuthForm onAuthenticated={() => setAuthenticated(true)} />
+            <AuthForm onAuthenticated={() => null} />
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-finder-primary" />
+        <span className="ml-2">Loading...</span>
       </div>
     );
   }
@@ -300,7 +324,7 @@ const RegisterCase = () => {
           </div>
           
           <div className="flex justify-end">
-            <Button type="button" onClick={() => document.getElementById('case-tab')?.click()}>
+            <Button type="button" onClick={() => navigateToTab("case")}>
               Next
             </Button>
           </div>
@@ -388,10 +412,10 @@ const RegisterCase = () => {
           </div>
           
           <div className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => document.getElementById('personal-tab')?.click()}>
+            <Button type="button" variant="outline" onClick={() => navigateToTab("personal")}>
               Previous
             </Button>
-            <Button type="button" onClick={() => document.getElementById('contact-tab')?.click()}>
+            <Button type="button" onClick={() => navigateToTab("contact")}>
               Next
             </Button>
           </div>
@@ -453,7 +477,7 @@ const RegisterCase = () => {
             </p>
             
             <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={() => document.getElementById('case-tab')?.click()}>
+              <Button type="button" variant="outline" onClick={() => navigateToTab("case")}>
                 Previous
               </Button>
               <Button type="submit" disabled={isSubmitting}>
