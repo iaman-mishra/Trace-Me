@@ -23,53 +23,53 @@ export interface MissingPerson {
 export const missingPersonsData: MissingPerson[] = [
   {
     id: '1',
-    name: 'John Smith',
+    name: 'Aman Tiwari',
     age: 28,
     gender: 'Male',
     lastSeen: {
       date: '2023-10-15',
-      location: 'Central Park, New York'
+      location: 'Vanaras, india '
     },
-    description: 'John was last seen wearing a blue jacket and jeans. He has a distinctive tattoo on his right arm.',
-    imageUrl: 'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    description: 'Aman was last seen wearing a blue jacket and jeans. He has a distinctive tattoo on his right arm.',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
-      name: 'Mary Smith',
+      name: 'aman kumar tiwari',
       relation: 'Sister',
       phone: '555-123-4567',
-      email: 'mary.smith@example.com'
+      email: 'amankumartiwari5255@gmail.com'
     },
     status: 'missing'
   },
   {
     id: '2',
-    name: 'Emma Johnson',
+    name: 'Ashish Yadav',
     age: 17,
     gender: 'Female',
     lastSeen: {
       date: '2023-11-02',
-      location: 'Downtown Seattle, Washington'
+      location: 'up, pratapgargh'
     },
     description: 'Emma has brown hair and green eyes. She was wearing a green hoodie and carrying a black backpack.',
-    imageUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
-      name: 'Robert Johnson',
+      name: 'ashish yadav',
       relation: 'Father',
       phone: '555-987-6543',
-      email: 'robert.johnson@example.com'
+      email: 'ashishyadav@gmail.com'
     },
     status: 'missing'
   },
   {
     id: '3',
-    name: 'Michael Davis',
+    name: 'Aman Mishra',
     age: 42,
     gender: 'Male',
     lastSeen: {
       date: '2023-09-28',
-      location: 'Miami Beach, Florida'
+      location: 'up, pratapgargh'
     },
     description: 'Michael is approximately 6\'1" with a slim build. Has a scar on his left cheek.',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
       name: 'Sarah Davis',
       relation: 'Wife',
@@ -80,7 +80,7 @@ export const missingPersonsData: MissingPerson[] = [
   },
   {
     id: '4',
-    name: 'Olivia Wilson',
+    name: 'Arav ghosh',
     age: 31,
     gender: 'Female',
     lastSeen: {
@@ -88,7 +88,7 @@ export const missingPersonsData: MissingPerson[] = [
       location: 'Chicago Transit Station, Illinois'
     },
     description: 'Olivia has blonde hair and was wearing a red coat when last seen. She speaks with a slight accent.',
-    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
       name: 'James Wilson',
       relation: 'Brother',
@@ -99,7 +99,7 @@ export const missingPersonsData: MissingPerson[] = [
   },
   {
     id: '5',
-    name: 'David Brown',
+    name: 'Ankit Shukla',
     age: 24,
     gender: 'Male',
     lastSeen: {
@@ -107,7 +107,7 @@ export const missingPersonsData: MissingPerson[] = [
       location: 'Golden Gate Park, San Francisco'
     },
     description: 'David has dark brown hair and hazel eyes. Last seen wearing a gray t-shirt and black shorts.',
-    imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
       name: 'Lisa Brown',
       relation: 'Mother',
@@ -118,7 +118,7 @@ export const missingPersonsData: MissingPerson[] = [
   },
   {
     id: '6',
-    name: 'Sophia Martinez',
+    name: 'Ritesh Kumar',
     age: 19,
     gender: 'Female',
     lastSeen: {
@@ -126,7 +126,7 @@ export const missingPersonsData: MissingPerson[] = [
       location: 'University Campus, Austin, Texas'
     },
     description: 'Sophia is 5\'5" with long black hair. Last seen wearing a university sweatshirt and carrying a laptop bag.',
-    imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80',
+    imageUrl: '/images/person1.jpg',
     contactInfo: {
       name: 'Carlos Martinez',
       relation: 'Father',

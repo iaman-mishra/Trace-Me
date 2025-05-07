@@ -334,7 +334,7 @@ const SearchPage = () => {
       
       <footer className="bg-gray-900 text-white py-8 px-4">
         <div className="container mx-auto text-center">
-          <p className="text-gray-400">© 2023 FindMyPerson. All rights reserved.</p>
+          <p className="text-gray-400">© 2025 FindMyPerson. All rights reserved.</p>
         </div>
       </footer>
     </div>
